@@ -1,0 +1,7 @@
+# IDEs and editors
+.idea/
+.vscode/
+
+# Environment
+.env.*
+!.env.example
