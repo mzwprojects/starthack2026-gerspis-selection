@@ -1,0 +1,5 @@
+services:
+  api:
+    volumes:
+      - ./apps/api:/app
+    command: [ "fastapi", "dev", "--host", "0.0.0.0", "--proxy-headers" ]
