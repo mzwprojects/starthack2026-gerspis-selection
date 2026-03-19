@@ -18,11 +18,13 @@ export default function LobbyScreen({ navigation, route }) {
   const [socket, setSocket] = useState(null);
   const [years, setYears] = useState('15');
   const [budget, setBudget] = useState('20000');
+  const [avatar, setAvatar] = useState('🧢');
   const roomCodeRef = useRef('');
   const displayNameRef = useRef('');
 
   useEffect(() => {
     AsyncStorage.getItem('userDisplayName').then(n => { if (n) { setDisplayName(n); displayNameRef.current = n; } });
+    AsyncStorage.getItem('equippedAvatar').then(a => { if (a) { setAvatar(a); } });
     // Do NOT disconnect socket on unmount — socket must persist through navigation to MultiSetup
   }, []);
 
@@ -84,12 +86,12 @@ export default function LobbyScreen({ navigation, route }) {
       // Already connected, emit immediately
       setupSocket(s, null);
       console.log('[Socket] Already connected, emitting create_lobby');
-      s.emit('create_lobby', { displayName: displayName.trim(), email });
+      s.emit('create_lobby', { displayName: displayName.trim(), email, avatar });
     } else {
       // Wait for connection before emitting
       setupSocket(s, () => {
         console.log('[Socket] Now connected, emitting create_lobby');
-        s.emit('create_lobby', { displayName: displayName.trim(), email });
+        s.emit('create_lobby', { displayName: displayName.trim(), email, avatar });
       });
     }
   };
@@ -102,11 +104,11 @@ export default function LobbyScreen({ navigation, route }) {
     if (s.connected) {
       setupSocket(s, null);
       console.log('[Socket] Already connected, emitting join_lobby');
-      s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email });
+      s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email, avatar });
     } else {
       setupSocket(s, () => {
         console.log('[Socket] Now connected, emitting join_lobby');
-        s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email });
+        s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email, avatar });
       });
     }
   };
@@ -187,7 +189,11 @@ export default function LobbyScreen({ navigation, route }) {
         {lobby.players.map((p, i) => (
           <View key={p.id} style={styles.playerCard}>
             <View style={[styles.playerAvatar, { backgroundColor: PLAYER_COLORS[i % PLAYER_COLORS.length] }]}>
-              <Text style={styles.playerInitial}>{p.displayName[0].toUpperCase()}</Text>
+              {p.avatar ? (
+                <Text style={{ fontSize: 24 }}>{p.avatar}</Text>
+              ) : (
+                <Text style={styles.playerInitial}>{p.displayName[0].toUpperCase()}</Text>
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.playerName}>{p.displayName}</Text>

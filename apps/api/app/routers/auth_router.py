@@ -36,6 +36,8 @@ def register(req: RegisterRequest, session: Session = Depends(get_session)):
             "displayName": user.display_name,
             "coins": user.coins,
             "quizStreak": user.quiz_streak,
+            "avatar": user.avatar,
+            "ownedAvatars": user.owned_avatars,
         },
     }
 
@@ -56,5 +58,7 @@ def login(req: LoginRequest, session: Session = Depends(get_session)):
             "displayName": user.display_name,
             "coins": user.coins,
             "quizStreak": user.quiz_streak,
+            "avatar": user.avatar,
+            "ownedAvatars": user.owned_avatars,
         },
     }

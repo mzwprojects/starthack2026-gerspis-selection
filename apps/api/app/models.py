@@ -14,6 +14,8 @@ class User(SQLModel, table=True):
     games_played: int = Field(default=0)
     quiz_streak: int = Field(default=0)
     last_quiz_date: Optional[str] = Field(default=None, max_length=10)  # "YYYY-MM-DD"
+    avatar: str = Field(default="🧢", max_length=10)
+    owned_avatars: list = Field(default=["🧢"], sa_column=Column(JSON))
 
 
 # ── Question (Quiz) ──────────────────────────────────────────────────

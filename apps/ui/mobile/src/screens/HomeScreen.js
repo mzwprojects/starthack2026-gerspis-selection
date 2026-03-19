@@ -114,7 +114,10 @@ export default function HomeScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
+          <TouchableOpacity onPress={() => navigation.navigate('Shop', { email: userEmail })} style={styles.menuBtn}>
+            <Text style={{ fontSize: 24, textAlign: 'center' }}>👤</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.greeting}>{greeting} 👋</Text>
             <Text style={styles.email}>{userEmail}</Text>
           </View>
@@ -123,9 +126,14 @@ export default function HomeScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
         <View style={styles.coinsRow}>
-          <View style={styles.coinsBadge}>
-            <Text style={{ fontSize: 18, marginRight: spacing.xs }}>🪙</Text>
-            <Text style={styles.coinsText}>{coins} Coins</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.coinsBadge}>
+              <Text style={{ fontSize: 18, marginRight: spacing.xs }}>🪙</Text>
+              <Text style={styles.coinsText}>{coins} Coins</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Shop', { email: userEmail })} style={styles.shopRoundBtn}>
+              <Text style={styles.shopRoundBtnText}>🛒</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.pfLogoContainer}>
             <View style={styles.pfCross}>
@@ -240,6 +248,7 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   greeting: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.textOnDark },
   email: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  menuBtn: { backgroundColor: 'rgba(255,255,255,0.15)', width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   logoutBtn: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.full },
   logoutText: { color: colors.textOnDark, fontSize: fontSize.sm, fontWeight: '500' },
   coinsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md },
@@ -249,6 +258,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   coinsText: { color: colors.accent, fontSize: fontSize.md, fontWeight: '600' },
+  shopRoundBtn: { backgroundColor: colors.accent, width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginLeft: 8, ...shadows.button },
+  shopRoundBtnText: { fontSize: 18 },
   pfLogoContainer: { flexDirection: 'row', alignItems: 'center' },
   pfCross: { width: 18, height: 18, position: 'relative', marginRight: 4, transform: [{ rotate: '-8deg' }] },
   pfCrossV: { position: 'absolute', left: 5, top: 0, width: 8, height: 18, backgroundColor: '#FFCC00', borderRadius: 2.5 },
