@@ -13,8 +13,8 @@ from app.simulation import run_simulation
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*",
-    logger=False,
-    engineio_logger=False,
+    logger=True,
+    engineio_logger=True,
 )
 
 # In-memory lobby store
@@ -77,7 +77,7 @@ async def create_lobby(sid, data):
         "settings": {"years": 10, "totalBudget": 10000},
         "simResults": {},
     }
-    sio.enter_room(sid, room_code)
+    await sio.enter_room(sid, room_code)
     # Store room on session
     async with sio.session(sid) as session:
         session["roomCode"] = room_code
@@ -112,7 +112,7 @@ async def join_lobby(sid, data):
         "allocation": None,
     }
     lobby["players"].append(player)
-    sio.enter_room(sid, room_code)
+    await sio.enter_room(sid, room_code)
     async with sio.session(sid) as session:
         session["roomCode"] = room_code
     await sio.emit("lobby_joined", {"roomCode": room_code}, room=sid)
