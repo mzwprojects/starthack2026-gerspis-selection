@@ -125,12 +125,12 @@ The backend uses Python 3.12 and a MySQL database.
 ```bash
 cd apps/api
 
-python -m venv venv
+python -m venv .venv
 
 # On Linux/Mac
-source venv/bin/activate
+source .venv/bin/activate
 
-# On Windows
+# On Windows (Powershell)
 .venv\Scripts\activate
 
 pip install -r requirements.txt
