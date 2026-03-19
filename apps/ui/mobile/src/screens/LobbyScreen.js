@@ -16,8 +16,8 @@ export default function LobbyScreen({ navigation, route }) {
   const [roomCode, setRoomCode] = useState('');
   const [lobby, setLobby] = useState(null);
   const [socket, setSocket] = useState(null);
-  const [years, setYears] = useState('10');
-  const [budget, setBudget] = useState('10000');
+  const [years, setYears] = useState('15');
+  const [budget, setBudget] = useState('20000');
   const roomCodeRef = useRef('');
   const displayNameRef = useRef('');
 
