@@ -174,16 +174,16 @@ export default function ResultsScreen({ navigation, route }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={{ fontSize: 32, marginBottom: spacing.sm }}>📊</Text>
-            <Text style={styles.modalTitle}>Was ist die Sharpe Ratio?</Text>
+            <Text style={styles.modalTitle}>What is the Sharpe Ratio?</Text>
             <View style={{ marginBottom: spacing.md }}>
               <Text style={styles.modalInfoText}>
-                Die Sharpe Ratio zeigt dir, wie viel Rendite du für das eingegangene Risiko bekommst. Einfach gesagt: Sie misst, ob sich das Risiko gelohnt hat.{"\n\n"}
-                <Text style={{ fontWeight: '700' }}>So liest du den Wert:</Text>{"\n"}
-                • <Text style={{ fontWeight: '600' }}>Unter 0</Text> — Dein Portfolio hat Verlust gemacht. Das Risiko hat sich nicht gelohnt.{"\n"}
-                • <Text style={{ fontWeight: '600' }}>0 – 0.5</Text> — Deine Rendite war im Verhältnis zum Risiko eher schwach.{"\n"}
-                • <Text style={{ fontWeight: '600' }}>0.5 – 1.0</Text> — Gutes Verhältnis! Du hast das Risiko gut genutzt.{"\n"}
-                • <Text style={{ fontWeight: '600' }}>Über 1.0</Text> — Ausgezeichnet! Hohe Rendite bei vergleichsweise wenig Risiko.{"\n\n"}
-                <Text style={{ fontWeight: '700' }}>Tipp:</Text> Je höher die Sharpe Ratio, desto besser. Ein breit gestreutes Portfolio (diversifiziert) hat meist eine bessere Sharpe Ratio, weil das Risiko verteilt wird.
+                The Sharpe Ratio shows you how much return you get for the risk you took on. Simply put: it measures whether the risk was worth it.{"\n\n"}
+                <Text style={{ fontWeight: '700' }}>How to read the value:</Text>{"\n"}
+                • <Text style={{ fontWeight: '600' }}>Under 0</Text> — Your portfolio has made a loss. The risk wasn't worth it.{"\n"}
+                • <Text style={{ fontWeight: '600' }}>0 – 0.5</Text> — Your return was rather low in relation to the risk.{"\n"}
+                • <Text style={{ fontWeight: '600' }}>0.5 – 1.0</Text> — Good result! You've made the most of the opportunity.{"\n"}
+                • <Text style={{ fontWeight: '600' }}>Over 1.0</Text> — Excellent! High returns with relatively low risk.{"\n\n"}
+                <Text style={{ fontWeight: '700' }}>Tip:</Text> The higher the Sharpe ratio, the better. A broadly diversified portfolio usually has a better Sharpe ratio because the risk is spread out.
               </Text>
             </View>
             <TouchableOpacity style={styles.modalBtn} onPress={() => setShowRiskInfo(false)}>
