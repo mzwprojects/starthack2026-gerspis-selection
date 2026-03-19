@@ -19,7 +19,13 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      ENVIRONMENT: ${ENVIRONMENT}
+      API_DEBUG: ${API_DEBUG}
+      API_SECRET_KEY: ${API_SECRET_KEY}
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "${API_PORT}:8000"
     depends_on:
