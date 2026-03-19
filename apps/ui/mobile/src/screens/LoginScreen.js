@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, StatusBar, Alert, Animated,
-  ActivityIndicator, ImageBackground
+  ActivityIndicator, ImageBackground, ScrollView
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
@@ -56,42 +56,55 @@ export default function LoginScreen({ navigation }) {
   return (
     <ImageBackground source={require('../../assets/bull-bear-bg.png')} style={styles.container} resizeMode="cover" imageStyle={{ opacity: 0.15, transform: [{ translateY: 80 }] }}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      <View style={styles.header}>
-        <Text style={styles.greeting}>{isLogin ? 'Welcome back' : 'Create account'}</Text>
-        <Text style={styles.subtitle}>Wealth Manager Arena</Text>
-        <Text style={styles.tagline}>Learn to invest. Play to win. 🚀</Text>
-      </View>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.formContainer}>
-        <Animated.View style={[styles.formCard, { opacity: fadeAnim }]}>
-          <Text style={styles.formTitle}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
-          {!isLogin && (
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Display Name</Text>
-              <TextInput style={styles.input} placeholder="Your player name" placeholderTextColor={colors.textLight}
-                value={displayName} onChangeText={setDisplayName} autoCapitalize="words" />
-            </View>
-          )}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor={colors.textLight}
-              value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.greeting}>{isLogin ? 'Welcome back' : 'Create account'}</Text>
+            <Text style={styles.subtitle}>Wealth Manager Arena</Text>
+            <Text style={styles.tagline}>Learn to invest. Play to win. 🚀</Text>
           </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={colors.textLight}
-              value={password} onChangeText={setPassword} secureTextEntry />
+          <View style={styles.formContainer}>
+            <Animated.View style={[styles.formCard, { opacity: fadeAnim }]}>
+              <Text style={styles.formTitle}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
+              {!isLogin && (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Display Name</Text>
+                  <TextInput style={styles.input} placeholder="Your player name" placeholderTextColor={colors.textLight}
+                    value={displayName} onChangeText={setDisplayName} autoCapitalize="words" />
+                </View>
+              )}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor={colors.textLight}
+                  value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor={colors.textLight}
+                  value={password} onChangeText={setPassword} secureTextEntry />
+              </View>
+              <TouchableOpacity style={[styles.submitButton, loading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={loading} activeOpacity={0.8}>
+                {loading ? <ActivityIndicator color={colors.textOnAccent} /> :
+                  <Text style={styles.submitButtonText}>{isLogin ? '🔐  Login' : '✨  Create Account'}</Text>}
+              </TouchableOpacity>
+            </Animated.View>
+            <TouchableOpacity onPress={toggleMode} style={styles.toggleContainer}>
+              <Text style={styles.toggleText}>
+                {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                <Text style={styles.toggleLink}>{isLogin ? 'Sign Up' : 'Sign In'}</Text>
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={[styles.submitButton, loading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={loading} activeOpacity={0.8}>
-            {loading ? <ActivityIndicator color={colors.textOnAccent} /> :
-              <Text style={styles.submitButtonText}>{isLogin ? '🔐  Login' : '✨  Create Account'}</Text>}
-          </TouchableOpacity>
-        </Animated.View>
-        <TouchableOpacity onPress={toggleMode} style={styles.toggleContainer}>
-          <Text style={styles.toggleText}>
-            {isLogin ? "Don't have an account? " : 'Already have an account? '}
-            <Text style={styles.toggleLink}>{isLogin ? 'Sign Up' : 'Sign In'}</Text>
-          </Text>
-        </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -107,7 +120,7 @@ const styles = StyleSheet.create({
   greeting: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.textOnDark, marginBottom: spacing.xs },
   subtitle: { fontSize: fontSize.lg, fontWeight: '500', color: colors.accent, marginBottom: spacing.xs },
   tagline: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.7)' },
-  formContainer: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center', marginTop: -20 },
+  formContainer: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center', paddingVertical: spacing.lg },
   formCard: { backgroundColor: 'rgba(255, 255, 255, 0.65)', borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },
   formTitle: { fontSize: fontSize.xl, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.lg },
   inputContainer: { marginBottom: spacing.md },

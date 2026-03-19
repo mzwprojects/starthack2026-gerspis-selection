@@ -571,22 +571,24 @@ export default function SimulationScreen({ navigation, route }) {
       {/* TIP Modal */}
       <Modal visible={activeModal?.type === 'tip'} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalBadge}>💡 TIP</Text>
-            <Text style={{ fontSize: 36, marginBottom: spacing.sm }}>{activeModal?.data?.icon}</Text>
-            <Text style={styles.modalTitle}>{activeModal?.data?.title}</Text>
-            <Text style={styles.modalText}>{activeModal?.data?.text}</Text>
-            <TouchableOpacity style={styles.modalBtn} onPress={dismissModal}>
-              <Text style={styles.modalBtnText}>Got it! 👍</Text>
-            </TouchableOpacity>
-          </View>
+          <ScrollView contentContainerStyle={styles.modalScrollContent}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalBadge}>💡 TIP</Text>
+              <Text style={{ fontSize: 36, marginBottom: spacing.sm }}>{activeModal?.data?.icon}</Text>
+              <Text style={styles.modalTitle}>{activeModal?.data?.title}</Text>
+              <Text style={styles.modalText}>{activeModal?.data?.text}</Text>
+              <TouchableOpacity style={styles.modalBtn} onPress={dismissModal}>
+                <Text style={styles.modalBtnText}>Got it! 👍</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 
       {/* QUIZ Modal */}
       <Modal visible={activeModal?.type === 'quiz'} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg }}>
+          <ScrollView contentContainerStyle={styles.modalScrollContent}>
             <View style={styles.modalCard}>
               <Text style={styles.modalBadge}>🧠 QUIZ</Text>
               <Text style={styles.quizQuestion}>{activeModal?.data?.question}</Text>
@@ -631,7 +633,7 @@ export default function SimulationScreen({ navigation, route }) {
       {/* DECISION Modal */}
       <Modal visible={activeModal?.type === 'decision'} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg }}>
+          <ScrollView contentContainerStyle={styles.modalScrollContent}>
             <View style={styles.modalCard}>
               <Text style={[styles.modalBadge, { backgroundColor: '#FFE0E0', color: colors.danger }]}>⚡ DECISION</Text>
               <Text style={{ fontSize: 36, marginBottom: spacing.sm }}>{activeModal?.data?.icon}</Text>
@@ -679,20 +681,22 @@ export default function SimulationScreen({ navigation, route }) {
       {/* MARKET EVENT Modal */}
       <Modal visible={activeModal?.type === 'event'} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={[styles.modalBadge, { backgroundColor: '#E8E0FF', color: '#6B46C1' }]}>📰 MARKET EVENT</Text>
-            <Text style={{ fontSize: 44, marginBottom: spacing.sm }}>{activeModal?.data?.icon}</Text>
-            <Text style={styles.modalTitle}>{activeModal?.data?.title}</Text>
-            <Text style={{ fontSize: fontSize.sm, color: colors.textLight, marginBottom: spacing.md }}>📅 Year {currentYear}</Text>
-            <Text style={styles.modalText}>{activeModal?.data?.description}</Text>
-            <View style={styles.lessonBox}>
-              <Text style={{ fontSize: fontSize.sm, fontWeight: '700', color: colors.warning, marginBottom: 4 }}>💡 Lesson:</Text>
-              <Text style={{ fontSize: fontSize.md, color: colors.textPrimary, lineHeight: 22 }}>{activeModal?.data?.lesson}</Text>
+          <ScrollView contentContainerStyle={styles.modalScrollContent}>
+            <View style={styles.modalCard}>
+              <Text style={[styles.modalBadge, { backgroundColor: '#E8E0FF', color: '#6B46C1' }]}>📰 MARKET EVENT</Text>
+              <Text style={{ fontSize: 44, marginBottom: spacing.sm }}>{activeModal?.data?.icon}</Text>
+              <Text style={styles.modalTitle}>{activeModal?.data?.title}</Text>
+              <Text style={{ fontSize: fontSize.sm, color: colors.textLight, marginBottom: spacing.md }}>📅 Year {currentYear}</Text>
+              <Text style={styles.modalText}>{activeModal?.data?.description}</Text>
+              <View style={styles.lessonBox}>
+                <Text style={{ fontSize: fontSize.sm, fontWeight: '700', color: colors.warning, marginBottom: 4 }}>💡 Lesson:</Text>
+                <Text style={{ fontSize: fontSize.md, color: colors.textPrimary, lineHeight: 22 }}>{activeModal?.data?.lesson}</Text>
+              </View>
+              <TouchableOpacity style={styles.modalBtn} onPress={dismissModal}>
+                <Text style={styles.modalBtnText}>Continue →</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.modalBtn} onPress={dismissModal}>
-              <Text style={styles.modalBtnText}>Continue →</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -727,8 +731,9 @@ const styles = StyleSheet.create({
   },
   resultsBtn: { backgroundColor: colors.accent, borderRadius: borderRadius.full, paddingVertical: 16, alignItems: 'center', marginTop: spacing.md, ...shadows.button },
   resultsBtnText: { fontSize: fontSize.lg, fontWeight: '700', color: colors.textOnAccent },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
-  modalCard: { backgroundColor: colors.white, borderRadius: borderRadius.xl, padding: spacing.lg, width: '100%', maxWidth: 340, alignItems: 'center', alignSelf: 'center', ...shadows.card },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalScrollContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
+  modalCard: { backgroundColor: colors.white, borderRadius: borderRadius.xl, padding: spacing.lg, width: '100%', maxWidth: 400, alignItems: 'center', ...shadows.card },
   modalBadge: {
     backgroundColor: '#E0F2FE', color: '#0369A1', fontSize: fontSize.xs, fontWeight: '800',
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: borderRadius.full,
