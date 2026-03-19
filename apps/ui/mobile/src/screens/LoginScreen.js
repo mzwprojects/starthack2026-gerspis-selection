@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, StatusBar, Alert, Animated,
-  ActivityIndicator, ScrollView
+  ActivityIndicator, ScrollView, ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
@@ -55,7 +55,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={require('../../assets/bull-bear-bg.png')} style={styles.container} resizeMode="cover" imageStyle={{ opacity: 0.15, transform: [{ translateY: 80 }] }}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -107,7 +107,7 @@ export default function LoginScreen({ navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -122,7 +122,12 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: fontSize.lg, fontWeight: '500', color: colors.accent, marginBottom: spacing.xs },
   tagline: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.7)' },
   formContainer: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center', paddingVertical: spacing.lg },
-  formCard: { backgroundColor: 'rgba(255, 255, 255, 0.65)', borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },
+  formCard: {
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.65)' : colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...shadows.card
+  },
   formTitle: { fontSize: fontSize.xl, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.lg },
   inputContainer: { marginBottom: spacing.md },
   inputLabel: { fontSize: fontSize.sm, fontWeight: '500', color: colors.textSecondary, marginBottom: spacing.xs },
