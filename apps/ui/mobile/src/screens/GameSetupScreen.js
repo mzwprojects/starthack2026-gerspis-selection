@@ -118,7 +118,7 @@ export default function GameSetupScreen({ navigation, route }) {
         <Text style={styles.sectionTitle}>Investment Horizon</Text>
         <Text style={styles.sectionSub}>How many years do you want to invest?</Text>
         <View style={styles.yearRow}>
-          {[5, 10, 15, 20, 25, 30].map(y => (
+          {[15, 20, 25, 30].map(y => (
             <TouchableOpacity key={y} style={[styles.yearChip, years === y && styles.yearChipActive]} onPress={() => setYears(y)}>
               <Text style={[styles.yearChipText, years === y && { color: colors.textOnDark }]}>{y}y</Text>
             </TouchableOpacity>
