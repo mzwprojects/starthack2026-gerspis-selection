@@ -187,21 +187,24 @@ export default function SimulationScreen({ navigation, route }) {
     // Compute the current animated position in the timeline
     const totalProgress = Math.max(0, currentYear - 1 + animProgress);
 
-    // Calculate value range across all lines
-    let minVal = totalBudget, maxVal = totalBudget;
-    for (let i = 0; i <= years; i++) {
-      minVal = Math.min(minVal, portfolioHistory[i], saverHistory[i]);
-      maxVal = Math.max(maxVal, portfolioHistory[i], saverHistory[i]);
+    // Calculate value range ONLY up to the current visible progress
+    const visibleEnd = Math.ceil(totalProgress);
+    let rawMin = portfolioHistory[0], rawMax = portfolioHistory[0];
+    for (let i = 0; i <= visibleEnd && i <= years; i++) {
+      rawMin = Math.min(rawMin, portfolioHistory[i], saverHistory[i]);
+      rawMax = Math.max(rawMax, portfolioHistory[i], saverHistory[i]);
       if (traderHistory[i] !== undefined) {
-        minVal = Math.min(minVal, traderHistory[i]);
-        maxVal = Math.max(maxVal, traderHistory[i]);
+        rawMin = Math.min(rawMin, traderHistory[i]);
+        rawMax = Math.max(rawMax, traderHistory[i]);
       }
     }
-    const padding = (maxVal - minVal) * 0.1 || totalBudget * 0.1;
-    minVal -= padding;
-    maxVal += padding;
+    
+    // Dynamic Y: Zoom in relative to price
+    const padding = (rawMax - rawMin) * 0.1 || portfolioHistory[0] * 0.1;
+    const minVal = rawMin - padding;
+    const maxVal = rawMax + padding;
 
-    const toX = (i) => (i / years) * CHART_W;
+    const toX = (i) => (i / Math.max(1, years)) * CHART_W;
     const toY = (val) => CHART_H - ((val - minVal) / (maxVal - minVal)) * CHART_H;
 
     // Build points including interpolated current position
@@ -229,17 +232,17 @@ export default function SimulationScreen({ navigation, route }) {
     const saverPoints = buildPoints(saverHistory);
     const traderPoints = traderHistory.length > 0 ? buildPoints(traderHistory) : [];
 
-    // Year markers
-    const yearMarkers = [];
+    // Fixed X-axis: show all years
+    const xMarkers = [];
     for (let y = 0; y <= years; y += Math.max(1, Math.floor(years / 5))) {
-      yearMarkers.push(y);
+      xMarkers.push(y);
     }
-    if (!yearMarkers.includes(years)) yearMarkers.push(years);
+    if (!xMarkers.includes(years)) xMarkers.push(years);
 
-    // Y-axis tick values
+    // Dynamic Y-axis: relative to min/max
     const yTicks = [0, 0.25, 0.5, 0.75, 1].map(pct => {
       const val = minVal + (maxVal - minVal) * pct;
-      return { pct, val, label: fmt(Math.round(val)) };
+      return { pct, val, label: fmt(Math.round(val)), yPos: CHART_H * (1 - pct) };
     });
 
     return (
@@ -264,13 +267,13 @@ export default function SimulationScreen({ navigation, route }) {
             textAnchor="middle" rotation={-90} originX={6} originY={CHART_H / 2}>
             Portfolio (CHF)
           </SvgText>
-          {/* Y-axis tick values + grid lines */}
+          {/* Y-axis tick values + grid lines (dynamic 10k steps) */}
           {yTicks.map((tick, i) => (
             <React.Fragment key={i}>
-              <SvgText x={Y_AXIS_W - 4} y={CHART_H * (1 - tick.pct) + 3} fill="#999" fontSize={8} textAnchor="end">
+              <SvgText x={Y_AXIS_W - 4} y={tick.yPos + 3} fill="#999" fontSize={8} textAnchor="end">
                 {tick.label}
               </SvgText>
-              <Line x1={Y_AXIS_W} y1={CHART_H * (1 - tick.pct)} x2={Y_AXIS_W + CHART_W} y2={CHART_H * (1 - tick.pct)}
+              <Line x1={Y_AXIS_W} y1={tick.yPos} x2={Y_AXIS_W + CHART_W} y2={tick.yPos}
                 stroke="#E8E8E8" strokeWidth={0.5} />
             </React.Fragment>
           ))}
@@ -290,15 +293,15 @@ export default function SimulationScreen({ navigation, route }) {
               fill="none" stroke={colors.primary} strokeWidth={2.5}
               strokeLinecap="round" strokeLinejoin="round" />
           )}
-          {/* X-axis year markers */}
-          {yearMarkers.map(y => (
+          {/* X-axis year markers (dynamic, progressive) */}
+          {xMarkers.map(y => (
             <SvgText key={y} x={toX(y) + Y_AXIS_W} y={CHART_H + 14} fill="#999" fontSize={10} textAnchor="middle">
               {y}
             </SvgText>
           ))}
           {/* X-axis label */}
           <SvgText x={Y_AXIS_W + CHART_W / 2} y={CHART_H + 32} fill="#999" fontSize={9} fontWeight="600" textAnchor="middle">
-            Zeit (Jahre)
+            Year
           </SvgText>
         </Svg>
       </View>

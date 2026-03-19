@@ -8,7 +8,8 @@ import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
 import { getSocket } from '../socket';
 
 const YEAR_DURATION = 7000;
-const CHART_W = Dimensions.get('window').width - 64;
+const Y_AXIS_W = 45;
+const CHART_W = Dimensions.get('window').width - 64 - Y_AXIS_W;
 const CHART_H = 150;
 const SCREEN_H = Dimensions.get('window').height;
 const PLAYER_COLORS = ['#2196F3', '#FF9800', '#4CAF50', '#E91E63', '#9C27B0', '#00BCD4'];
@@ -139,21 +140,30 @@ export default function MultiSimulationScreen({ navigation, route }) {
 
   // Build chart
   const renderChart = () => {
-    let minVal = totalBudget, maxVal = totalBudget;
-    for (let y = 0; y <= years; y++) {
+    // Compute the current animated position in the timeline
+    const totalProgress = Math.max(0, currentYear - 1 + animProgress);
+    const visibleEnd = Math.ceil(totalProgress);
+
+    // Calculate value range ONLY up to visible progress
+    let rawMin = totalBudget, rawMax = totalBudget;
+    for (let y = 0; y <= visibleEnd && y <= years; y++) {
       const yd = yearByYear[y];
       if (yd) {
         Object.values(yd).forEach(p => {
-          if (p.value < minVal) minVal = p.value;
-          if (p.value > maxVal) maxVal = p.value;
+          if (p.value < rawMin) rawMin = p.value;
+          if (p.value > rawMax) rawMax = p.value;
         });
       }
-      if (saverHistory[y] < minVal) minVal = saverHistory[y];
-      if (saverHistory[y] > maxVal) maxVal = saverHistory[y];
+      if (saverHistory[y] < rawMin) rawMin = saverHistory[y];
+      if (saverHistory[y] > rawMax) rawMax = saverHistory[y];
     }
-    const pad = (maxVal - minVal) * 0.1 || totalBudget * 0.1;
-    minVal -= pad; maxVal += pad;
-    const toX = (i) => (i / years) * CHART_W;
+    
+    // Dynamic Y: Zoom in relative to price
+    const padding = (rawMax - rawMin) * 0.1 || totalBudget * 0.1;
+    const minVal = rawMin - padding;
+    const maxVal = rawMax + padding;
+
+    const toX = (i) => (i / Math.max(1, years)) * CHART_W;
     const toY = (val) => CHART_H - ((val - minVal) / (maxVal - minVal)) * CHART_H;
 
     const buildPts = (getVal) => {
@@ -175,6 +185,19 @@ export default function MultiSimulationScreen({ navigation, route }) {
       pts: buildPts(y => yearByYear[y]?.[p.id]?.value || totalBudget),
     }));
 
+    // Fixed X-axis: show all years
+    const xMarkers = [];
+    for (let y = 0; y <= years; y += Math.max(1, Math.floor(years / 5))) {
+      xMarkers.push(y);
+    }
+    if (!xMarkers.includes(years)) xMarkers.push(years);
+
+    // Dynamic Y-axis: relative to min/max
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map(pct => {
+      const val = minVal + (maxVal - minVal) * pct;
+      return { pct, val, label: fmt(Math.round(val)), yPos: CHART_H * (1 - pct) };
+    });
+
     return (
       <View style={styles.chartContainer}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginBottom: 8, gap: 8 }}>
@@ -189,18 +212,43 @@ export default function MultiSimulationScreen({ navigation, route }) {
             <Text style={{ fontSize: 9, color: colors.textSecondary }}>Saver</Text>
           </View>
         </View>
-        <Svg width={CHART_W} height={CHART_H + 20}>
-          {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
-            <Line key={i} x1={0} y1={CHART_H * (1 - pct)} x2={CHART_W} y2={CHART_H * (1 - pct)} stroke="#E8E8E8" strokeWidth={0.5} />
+        <Svg width={CHART_W + Y_AXIS_W} height={CHART_H + 40}>
+          {/* Y-axis label */}
+          <SvgText x={6} y={CHART_H / 2} fill="#999" fontSize={9} fontWeight="600"
+            textAnchor="middle" rotation={-90} originX={6} originY={CHART_H / 2}>
+            Portfolio (CHF)
+          </SvgText>
+          {/* Y-axis tick values + grid lines (dynamic 10k steps) */}
+          {yTicks.map((tick, i) => (
+            <React.Fragment key={i}>
+              <SvgText x={Y_AXIS_W - 4} y={tick.yPos + 3} fill="#999" fontSize={8} textAnchor="end">
+                {tick.label}
+              </SvgText>
+              <Line x1={Y_AXIS_W} y1={tick.yPos} x2={Y_AXIS_W + CHART_W} y2={tick.yPos}
+                stroke="#E8E8E8" strokeWidth={0.5} />
+            </React.Fragment>
           ))}
+          {/* Chart lines */}
           {saverPts.length > 1 && (
-            <Polyline points={saverPts.join(' ')} fill="none" stroke="#BDC3C7" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+            <Polyline points={saverPts.map(p => { const [x, y] = p.split(','); return `${parseFloat(x) + Y_AXIS_W},${y}`; }).join(' ')}
+              fill="none" stroke="#BDC3C7" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
           )}
           {playerLines.map(p => p.pts.length > 1 && (
-            <Polyline key={p.id} points={p.pts.join(' ')} fill="none" stroke={p.color}
+            <Polyline key={p.id} points={p.pts.map(pt => { const [x, y] = pt.split(','); return `${parseFloat(x) + Y_AXIS_W},${y}`; }).join(' ')}
+              fill="none" stroke={p.color}
               strokeWidth={p.id === myId ? 2.5 : 1.5}
               strokeLinecap="round" strokeLinejoin="round" />
           ))}
+          {/* X-axis year markers (dynamic, progressive) */}
+          {xMarkers.map(y => (
+            <SvgText key={y} x={toX(y) + Y_AXIS_W} y={CHART_H + 14} fill="#999" fontSize={10} textAnchor="middle">
+              {y}
+            </SvgText>
+          ))}
+          {/* X-axis label */}
+          <SvgText x={Y_AXIS_W + CHART_W / 2} y={CHART_H + 32} fill="#999" fontSize={9} fontWeight="600" textAnchor="middle">
+            Year
+          </SvgText>
         </Svg>
       </View>
     );
