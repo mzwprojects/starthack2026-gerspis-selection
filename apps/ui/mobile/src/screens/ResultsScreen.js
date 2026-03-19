@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  StatusBar, Platform
+  StatusBar, Platform, Modal
 } from 'react-native';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
 
@@ -11,6 +11,8 @@ const gradeLabels = { A: 'Excellent', B: 'Good', C: 'Average', D: 'Below Average
 export default function ResultsScreen({ navigation, route }) {
   const { simData } = route.params;
   const { summary } = simData;
+
+  const [showRiskInfo, setShowRiskInfo] = useState(false);
 
   const fmt = (n) => {
     if (n === undefined || n === null) return '0';
@@ -68,7 +70,12 @@ export default function ResultsScreen({ navigation, route }) {
               </Text>
             </View>
             <View style={styles.metricBox}>
-              <Text style={styles.metricLabel}>Sharpe Ratio</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <Text style={styles.metricLabel}>Sharpe Ratio</Text>
+                <TouchableOpacity onPress={() => setShowRiskInfo(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={{ fontSize: 14 }}>❓</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={[styles.metricValue, { color: gc }]}>
                 {summary.sharpeRatio}
               </Text>
@@ -161,6 +168,30 @@ export default function ResultsScreen({ navigation, route }) {
         </TouchableOpacity>
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
+
+      {/* Sharpe Ratio Info Modal */}
+      <Modal visible={showRiskInfo} transparent animationType="fade" onRequestClose={() => setShowRiskInfo(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={{ fontSize: 32, marginBottom: spacing.sm }}>📊</Text>
+            <Text style={styles.modalTitle}>Was ist die Sharpe Ratio?</Text>
+            <View style={{ marginBottom: spacing.md }}>
+              <Text style={styles.modalInfoText}>
+                Die Sharpe Ratio zeigt dir, wie viel Rendite du für das eingegangene Risiko bekommst. Einfach gesagt: Sie misst, ob sich das Risiko gelohnt hat.{"\n\n"}
+                <Text style={{ fontWeight: '700' }}>So liest du den Wert:</Text>{"\n"}
+                • <Text style={{ fontWeight: '600' }}>Unter 0</Text> — Dein Portfolio hat Verlust gemacht. Das Risiko hat sich nicht gelohnt.{"\n"}
+                • <Text style={{ fontWeight: '600' }}>0 – 0.5</Text> — Deine Rendite war im Verhältnis zum Risiko eher schwach.{"\n"}
+                • <Text style={{ fontWeight: '600' }}>0.5 – 1.0</Text> — Gutes Verhältnis! Du hast das Risiko gut genutzt.{"\n"}
+                • <Text style={{ fontWeight: '600' }}>Über 1.0</Text> — Ausgezeichnet! Hohe Rendite bei vergleichsweise wenig Risiko.{"\n\n"}
+                <Text style={{ fontWeight: '700' }}>Tipp:</Text> Je höher die Sharpe Ratio, desto besser. Ein breit gestreutes Portfolio (diversifiziert) hat meist eine bessere Sharpe Ratio, weil das Risiko verteilt wird.
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.modalBtn} onPress={() => setShowRiskInfo(false)}>
+              <Text style={styles.modalBtnText}>Alles klar! 👍</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -199,6 +230,13 @@ const styles = StyleSheet.create({
   learnedCard: { backgroundColor: colors.white, borderRadius: borderRadius.lg, padding: spacing.lg, marginBottom: spacing.lg, ...shadows.card },
   learnedTitle: { fontSize: fontSize.lg, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.md },
   diversCard: { backgroundColor: colors.white, borderRadius: borderRadius.lg, padding: spacing.lg, marginBottom: spacing.lg, ...shadows.card },
+  // Modal styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
+  modalCard: { backgroundColor: colors.white, borderRadius: borderRadius.xl, padding: spacing.lg, width: '100%', maxWidth: 360, alignItems: 'center', ...shadows.card },
+  modalTitle: { fontSize: fontSize.lg, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: spacing.sm },
+  modalInfoText: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 22, textAlign: 'left' },
+  modalBtn: { backgroundColor: colors.primary, borderRadius: borderRadius.full, paddingVertical: 12, paddingHorizontal: spacing.xl, marginTop: spacing.md },
+  modalBtnText: { color: colors.textOnDark, fontSize: fontSize.md, fontWeight: '600' },
   playBtn: { backgroundColor: colors.accent, borderRadius: borderRadius.full, paddingVertical: 16, alignItems: 'center', marginBottom: spacing.md, ...shadows.button },
   playBtnText: { fontSize: fontSize.lg, fontWeight: '700', color: colors.textOnAccent },
   homeBtn: { backgroundColor: colors.primary, borderRadius: borderRadius.full, paddingVertical: 16, alignItems: 'center' },
