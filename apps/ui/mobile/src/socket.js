@@ -2,12 +2,7 @@ import { io } from 'socket.io-client';
 import Constants from 'expo-constants';
 
 const getSocketUrl = () => {
-  const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
-  if (debuggerHost) {
-    const host = debuggerHost.split(':')[0];
-    return `http://${host}:8000`;
-  }
-  return 'http://localhost:8000';
+  return 'https://dev.api.gerspis-selection.com';
 };
 
 let socket = null;
