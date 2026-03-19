@@ -8,7 +8,8 @@ import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
 import { api } from '../api';
 
 const YEAR_DURATION = 7000; // 7 seconds per year
-const CHART_W = Dimensions.get('window').width - 64;
+const Y_AXIS_W = 45;
+const CHART_W = Dimensions.get('window').width - 64 - Y_AXIS_W;
 const CHART_H = 140;
 const ASSET_CHART_H = 120;
 const SCREEN_H = Dimensions.get('window').height;
@@ -235,6 +236,12 @@ export default function SimulationScreen({ navigation, route }) {
     }
     if (!yearMarkers.includes(years)) yearMarkers.push(years);
 
+    // Y-axis tick values
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map(pct => {
+      const val = minVal + (maxVal - minVal) * pct;
+      return { pct, val, label: fmt(Math.round(val)) };
+    });
+
     return (
       <View style={styles.chartContainer}>
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 8, gap: 12 }}>
@@ -251,28 +258,48 @@ export default function SimulationScreen({ navigation, route }) {
             <Text style={{ fontSize: 10, color: colors.textSecondary }}>Trader</Text>
           </View>
         </View>
-        <Svg width={CHART_W} height={CHART_H + 24}>
-          {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
-            <Line key={i} x1={0} y1={CHART_H * (1 - pct)} x2={CHART_W} y2={CHART_H * (1 - pct)}
-              stroke="#E8E8E8" strokeWidth={0.5} />
+        <Svg width={CHART_W + Y_AXIS_W} height={CHART_H + 40}>
+          {/* Y-axis label */}
+          <SvgText x={6} y={CHART_H / 2} fill="#999" fontSize={9} fontWeight="600"
+            textAnchor="middle" rotation={-90} originX={6} originY={CHART_H / 2}>
+            Portfolio (CHF)
+          </SvgText>
+          {/* Y-axis tick values + grid lines */}
+          {yTicks.map((tick, i) => (
+            <React.Fragment key={i}>
+              <SvgText x={Y_AXIS_W - 4} y={CHART_H * (1 - tick.pct) + 3} fill="#999" fontSize={8} textAnchor="end">
+                {tick.label}
+              </SvgText>
+              <Line x1={Y_AXIS_W} y1={CHART_H * (1 - tick.pct)} x2={Y_AXIS_W + CHART_W} y2={CHART_H * (1 - tick.pct)}
+                stroke="#E8E8E8" strokeWidth={0.5} />
+            </React.Fragment>
           ))}
+          {/* Chart lines offset by Y_AXIS_W */}
           {traderPoints.length > 1 && (
-            <Polyline points={traderPoints.join(' ')} fill="none" stroke={colors.danger} strokeWidth={1.5}
+            <Polyline points={traderPoints.map(p => { const [x, y] = p.split(','); return `${parseFloat(x) + Y_AXIS_W},${y}`; }).join(' ')}
+              fill="none" stroke={colors.danger} strokeWidth={1.5}
               strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4,3" />
           )}
           {saverPoints.length > 1 && (
-            <Polyline points={saverPoints.join(' ')} fill="none" stroke="#BDC3C7" strokeWidth={2}
+            <Polyline points={saverPoints.map(p => { const [x, y] = p.split(','); return `${parseFloat(x) + Y_AXIS_W},${y}`; }).join(' ')}
+              fill="none" stroke="#BDC3C7" strokeWidth={2}
               strokeLinecap="round" strokeLinejoin="round" />
           )}
           {portfolioPoints.length > 1 && (
-            <Polyline points={portfolioPoints.join(' ')} fill="none" stroke={colors.primary} strokeWidth={2.5}
+            <Polyline points={portfolioPoints.map(p => { const [x, y] = p.split(','); return `${parseFloat(x) + Y_AXIS_W},${y}`; }).join(' ')}
+              fill="none" stroke={colors.primary} strokeWidth={2.5}
               strokeLinecap="round" strokeLinejoin="round" />
           )}
+          {/* X-axis year markers */}
           {yearMarkers.map(y => (
-            <SvgText key={y} x={toX(y)} y={CHART_H + 16} fill="#999" fontSize={10} textAnchor="middle">
+            <SvgText key={y} x={toX(y) + Y_AXIS_W} y={CHART_H + 14} fill="#999" fontSize={10} textAnchor="middle">
               {y}
             </SvgText>
           ))}
+          {/* X-axis label */}
+          <SvgText x={Y_AXIS_W + CHART_W / 2} y={CHART_H + 32} fill="#999" fontSize={9} fontWeight="600" textAnchor="middle">
+            Zeit (Jahre)
+          </SvgText>
         </Svg>
       </View>
     );
