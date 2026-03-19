@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, StatusBar, Alert, Animated,
-  ActivityIndicator
+  ActivityIndicator, ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
@@ -54,7 +54,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={require('../../assets/bull-bear-bg.png')} style={styles.container} resizeMode="cover" imageStyle={{ opacity: 0.15, transform: [{ translateY: 80 }] }}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <View style={styles.header}>
         <Text style={styles.greeting}>{isLogin ? 'Welcome back' : 'Create account'}</Text>
@@ -93,7 +93,7 @@ export default function LoginScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -108,14 +108,14 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: fontSize.lg, fontWeight: '500', color: colors.accent, marginBottom: spacing.xs },
   tagline: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.7)' },
   formContainer: { flex: 1, paddingHorizontal: spacing.lg, justifyContent: 'center', marginTop: -20 },
-  formCard: { backgroundColor: colors.white, borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },
+  formCard: { backgroundColor: 'rgba(255, 255, 255, 0.65)', borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.card },
   formTitle: { fontSize: fontSize.xl, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.lg },
   inputContainer: { marginBottom: spacing.md },
   inputLabel: { fontSize: fontSize.sm, fontWeight: '500', color: colors.textSecondary, marginBottom: spacing.xs },
   input: {
-    backgroundColor: colors.background, borderRadius: borderRadius.sm,
+    backgroundColor: 'rgba(245, 245, 245, 0.7)', borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md, paddingVertical: 14, fontSize: fontSize.md,
-    color: colors.textPrimary, borderWidth: 1, borderColor: colors.border,
+    color: colors.textPrimary, borderWidth: 1, borderColor: 'rgba(232, 232, 232, 0.5)',
   },
   submitButton: {
     backgroundColor: colors.accent, borderRadius: borderRadius.full,

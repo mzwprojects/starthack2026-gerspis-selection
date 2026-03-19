@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  StatusBar, Modal, Platform, Animated, Dimensions, LayoutAnimation, UIManager
+  StatusBar, Modal, Platform, Animated, Dimensions, LayoutAnimation, UIManager, ImageBackground
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
@@ -105,7 +105,7 @@ export default function HomeScreen({ navigation, route }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={require('../../assets/bull-bear-bg.png')} style={styles.container} resizeMode="cover" imageStyle={{ opacity: 0.15, transform: [{ translateY: 80 }] }}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -213,7 +213,7 @@ export default function HomeScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </ImageBackground>
   );
 }
 
