@@ -1,4 +1,5 @@
 import random
+from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
@@ -42,6 +43,23 @@ def submit_answer(
     coins_earned = 10 if correct else 0
 
     current_user.coins += coins_earned
+
+    # ── Streak tracking ──
+    today = date.today().isoformat()  # "YYYY-MM-DD"
+    last_date = current_user.last_quiz_date
+
+    if last_date != today:
+        # First quiz of the day
+        if last_date:
+            yesterday = (date.today() - timedelta(days=1)).isoformat()
+            if last_date == yesterday:
+                current_user.quiz_streak += 1  # Consecutive day
+            else:
+                current_user.quiz_streak = 1   # Streak broken, reset
+        else:
+            current_user.quiz_streak = 1       # First ever quiz
+        current_user.last_quiz_date = today
+
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
@@ -52,4 +70,6 @@ def submit_answer(
         "explanation": question.explanation,
         "coinsEarned": coins_earned,
         "totalCoins": current_user.coins,
+        "quizStreak": current_user.quiz_streak,
     }
+

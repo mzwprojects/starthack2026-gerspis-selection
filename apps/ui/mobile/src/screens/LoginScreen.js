@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, StatusBar, Alert, Animated,
-  ActivityIndicator, ImageBackground, ScrollView
+  ActivityIndicator, ScrollView
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
@@ -44,6 +44,7 @@ export default function LoginScreen({ navigation }) {
         await AsyncStorage.setItem('userEmail', email.trim());
         await AsyncStorage.setItem('userDisplayName', data.user.displayName || email.split('@')[0]);
         await AsyncStorage.setItem('userCoins', String(data.user.coins || 0));
+        await AsyncStorage.setItem('equippedAvatar', data.user.avatar || '🧢');
         navigation.replace('Home', { email: email.trim(), displayName: data.user.displayName });
       }
     } catch (err) {
@@ -54,7 +55,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <ImageBackground source={require('../../assets/bull-bear-bg.png')} style={styles.container} resizeMode="cover" imageStyle={{ opacity: 0.15, transform: [{ translateY: 80 }] }}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -106,7 +107,7 @@ export default function LoginScreen({ navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -126,9 +127,9 @@ const styles = StyleSheet.create({
   inputContainer: { marginBottom: spacing.md },
   inputLabel: { fontSize: fontSize.sm, fontWeight: '500', color: colors.textSecondary, marginBottom: spacing.xs },
   input: {
-    backgroundColor: 'rgba(245, 245, 245, 0.7)', borderRadius: borderRadius.sm,
+    backgroundColor: colors.background, borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md, paddingVertical: 14, fontSize: fontSize.md,
-    color: colors.textPrimary, borderWidth: 1, borderColor: 'rgba(232, 232, 232, 0.5)',
+    color: colors.textPrimary, borderWidth: 1, borderColor: colors.border,
   },
   submitButton: {
     backgroundColor: colors.accent, borderRadius: borderRadius.full,

@@ -42,6 +42,7 @@ def get_lobby_info(room_code: str) -> dict | None:
                 "displayName": p["displayName"],
                 "isHost": p["isHost"],
                 "ready": p["ready"],
+                "avatar": p.get("avatar", "🧢"),
             }
             for p in lobby["players"]
         ],
@@ -60,11 +61,13 @@ async def connect(sid, environ):
 async def create_lobby(sid, data):
     display_name = data.get("displayName", "Player")
     email = data.get("email", "")
+    avatar = data.get("avatar", "🧢")
     room_code = generate_room_code()
     player = {
         "id": sid,
         "displayName": display_name,
         "email": email,
+        "avatar": avatar,
         "isHost": True,
         "ready": False,
         "allocation": None,
@@ -107,6 +110,7 @@ async def join_lobby(sid, data):
         "id": sid,
         "displayName": display_name,
         "email": email,
+        "avatar": data.get("avatar", "🧢"),
         "isHost": False,
         "ready": False,
         "allocation": None,

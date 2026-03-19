@@ -108,9 +108,10 @@ export const api = {
       headers: await authHeaders(),
     });
   },
-  updateStreak: async () => {
-    return apiFetch(`${API_URL}/api/quiz/streak`, {
+  updateAvatar: async (email, avatar, cost = 0) => {
+    return apiFetch(`${API_URL}/api/user/${email}/avatar`, {
       method: 'POST', headers: await authHeaders(),
+      body: JSON.stringify({ avatar, cost }),
     });
   },
   logout: async () => {

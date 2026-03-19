@@ -13,6 +13,7 @@ import LobbyScreen from './src/screens/LobbyScreen';
 import MultiSetupScreen from './src/screens/MultiSetupScreen';
 import MultiSimulationScreen from './src/screens/MultiSimulationScreen';
 import MultiResultsScreen from './src/screens/MultiResultsScreen';
+import ShopScreen from './src/screens/ShopScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ export default function App() {
       >
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Shop" component={ShopScreen} />
         <Stack.Screen name="Quiz" component={QuizScreen} />
         <Stack.Screen name="GameSetup" component={GameSetupScreen} />
         <Stack.Screen name="Simulation" component={SimulationScreen} />
