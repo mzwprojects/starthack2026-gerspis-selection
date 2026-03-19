@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   StatusBar, Platform, Animated, ActivityIndicator, Alert
@@ -18,10 +18,38 @@ export default function QuizScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [quizComplete, setQuizComplete] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(1));
   const [coinAnim] = useState(new Animated.Value(0));
+  const streakAnim = useRef(new Animated.Value(0)).current;
+  const streakScale = useRef(new Animated.Value(0.5)).current;
 
-  useEffect(() => { loadQuiz(); }, []);
+  useEffect(() => { loadQuiz(); loadAndShowStreak(); }, []);
+
+  const loadAndShowStreak = async () => {
+    // Load streak from server via user profile
+    try {
+      const userData = await api.getUser(userEmail);
+      const currentStreak = userData.quizStreak || 0;
+      setStreak(currentStreak);
+    } catch (e) {
+      // Fallback
+      setStreak(0);
+    }
+    // Animate streak flame in, hold, then out
+    Animated.sequence([
+      Animated.delay(500),
+      Animated.parallel([
+        Animated.timing(streakAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.spring(streakScale, { toValue: 1, useNativeDriver: true, tension: 80, friction: 6 }),
+      ]),
+      Animated.delay(1800),
+      Animated.parallel([
+        Animated.timing(streakAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.timing(streakScale, { toValue: 0.5, duration: 400, useNativeDriver: true }),
+      ]),
+    ]).start();
+  };
 
   const loadQuiz = async () => {
     setLoading(true);
@@ -55,6 +83,14 @@ export default function QuizScreen({ navigation, route }) {
         Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
       });
     } else {
+      // Quiz complete — call server to update streak (daily-only)
+      try {
+        const streakData = await api.updateStreak();
+        setStreak(streakData.streak);
+      } catch (e) {
+        // If API fails, just increment locally for display
+        setStreak(prev => prev + 1);
+      }
       await AsyncStorage.setItem('userCoins', String(totalCoins));
       setQuizComplete(true);
     }
@@ -74,7 +110,12 @@ export default function QuizScreen({ navigation, route }) {
       <Text style={styles.completeTitle}>Quiz Complete!</Text>
       <Text style={styles.completeScore}>{correctCount}/{questions.length} correct</Text>
       <Text style={styles.completeCoins}>+{earnedThisRound} 🪙</Text>
-      <Text style={{ fontSize: fontSize.md, color: colors.textLight, marginBottom: spacing.xl }}>Total: {totalCoins} coins</Text>
+      <Text style={{ fontSize: fontSize.md, color: colors.textLight, marginBottom: spacing.md }}>Total: {totalCoins} coins</Text>
+      <View style={styles.streakResultBadge}>
+        <Text style={{ fontSize: 32 }}>🔥</Text>
+        <Text style={styles.streakResultNumber}>{streak}</Text>
+        <Text style={styles.streakResultLabel}>day streak!</Text>
+      </View>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back to Home</Text>
       </TouchableOpacity>
@@ -124,6 +165,20 @@ export default function QuizScreen({ navigation, route }) {
           )}
         </Animated.View>
       </ScrollView>
+
+      {/* Floating streak animation on quiz entry */}
+      <Animated.View pointerEvents="none" style={[styles.streakOverlay, {
+        opacity: streakAnim,
+        transform: [
+          { scale: streakScale },
+          { translateY: streakAnim.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) },
+        ],
+      }]}>
+        <Text style={styles.streakOverlayFlame}>🔥</Text>
+        <Text style={styles.streakOverlayNumber}>{streak}</Text>
+        <Text style={styles.streakOverlayLabel}>day streak</Text>
+      </Animated.View>
+
       <Animated.View pointerEvents="none" style={[styles.floatingCoin, {
         opacity: coinAnim,
         transform: [{ translateY: coinAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -60] }) },
@@ -177,4 +232,26 @@ const styles = StyleSheet.create({
   completeCoins: { fontSize: 32, fontWeight: '700', color: colors.accent, marginBottom: spacing.xs },
   backButton: { backgroundColor: colors.primary, borderRadius: borderRadius.full, paddingVertical: 14, paddingHorizontal: spacing.xl, ...shadows.button },
   backButtonText: { color: colors.textOnDark, fontSize: fontSize.lg, fontWeight: '600' },
+
+  // Streak result badge on complete screen
+  streakResultBadge: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FFF3E0', borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  streakResultNumber: { fontSize: 28, fontWeight: '800', color: '#E65100', marginLeft: 4 },
+  streakResultLabel: { fontSize: fontSize.md, fontWeight: '600', color: '#E65100', marginLeft: 6 },
+
+  // Streak overlay animation on entry
+  streakOverlay: {
+    position: 'absolute', top: '40%', alignSelf: 'center',
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.xl, paddingVertical: spacing.lg,
+    ...shadows.button,
+  },
+  streakOverlayFlame: { fontSize: 56 },
+  streakOverlayNumber: { fontSize: 42, fontWeight: '800', color: colors.accent, marginTop: -4 },
+  streakOverlayLabel: { fontSize: fontSize.md, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginTop: 2 },
 });

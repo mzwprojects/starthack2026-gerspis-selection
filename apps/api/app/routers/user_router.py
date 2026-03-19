@@ -23,4 +23,5 @@ def get_user(
         "displayName": user.display_name,
         "coins": user.coins,
         "gamesPlayed": user.games_played,
+        "quizStreak": user.quiz_streak,
     }

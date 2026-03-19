@@ -60,6 +60,7 @@ const theoryTopics = [
 export default function HomeScreen({ navigation, route }) {
   const userEmail = route.params?.email || '';
   const [coins, setCoins] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [tipModalVisible, setTipModalVisible] = useState(false);
   const [currentTip, setCurrentTip] = useState(null);
   const [greeting, setGreeting] = useState('');
@@ -70,6 +71,8 @@ export default function HomeScreen({ navigation, route }) {
     const h = new Date().getHours();
     setGreeting(h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening');
     AsyncStorage.getItem('userCoins').then(c => { if (c) setCoins(parseInt(c)); });
+    // Load streak from server
+    api.getUser(userEmail).then(data => { if (data.quizStreak !== undefined) setStreak(data.quizStreak); }).catch(() => {});
     Animated.stagger(80, cardAnims.map((a, i) =>
       Animated.spring(a, { toValue: 1, delay: i * 100, useNativeDriver: true, tension: 50, friction: 7 })
     )).start();
@@ -78,6 +81,8 @@ export default function HomeScreen({ navigation, route }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       AsyncStorage.getItem('userCoins').then(c => { if (c) setCoins(parseInt(c)); });
+      // Reload streak from server on focus
+      api.getUser(userEmail).then(data => { if (data.quizStreak !== undefined) setStreak(data.quizStreak); }).catch(() => {});
     });
     return unsubscribe;
   }, [navigation]);
@@ -148,7 +153,15 @@ export default function HomeScreen({ navigation, route }) {
                   <Text style={[styles.cardTitle, f.dark && { color: colors.textPrimary }]}>{f.title}</Text>
                   <Text style={[styles.cardSubtitle, f.dark && { color: 'rgba(0,0,0,0.6)' }]}>{f.subtitle}</Text>
                 </View>
-                <Text style={[{ fontSize: 24, color: colors.textOnDark, fontWeight: '300' }, f.dark && { color: colors.textPrimary }]}>→</Text>
+                {f.id === 'quiz' && (
+                  <View style={styles.streakBadge}>
+                    <Text style={styles.streakFlame}>🔥</Text>
+                    <Text style={styles.streakNumber}>{streak}</Text>
+                  </View>
+                )}
+                {f.id !== 'quiz' && (
+                  <Text style={[{ fontSize: 24, color: colors.textOnDark, fontWeight: '300' }, f.dark && { color: colors.textPrimary }]}>→</Text>
+                )}
               </View>
               {f.disabled && <View style={styles.soonBadge}><Text style={styles.soonText}>SOON</Text></View>}
             </TouchableOpacity>
@@ -249,6 +262,13 @@ const styles = StyleSheet.create({
   cardSubtitle: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   soonBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: borderRadius.full },
   soonText: { fontSize: 10, fontWeight: '700', color: colors.textOnDark, letterSpacing: 1 },
+  streakBadge: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: borderRadius.full,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  streakFlame: { fontSize: 20, marginRight: 3 },
+  streakNumber: { fontSize: fontSize.lg, fontWeight: '800', color: colors.accent },
 
   // Theory section
   theorySectionHeader: {

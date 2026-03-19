@@ -108,6 +108,11 @@ export const api = {
       headers: await authHeaders(),
     });
   },
+  updateStreak: async () => {
+    return apiFetch(`${API_URL}/api/quiz/streak`, {
+      method: 'POST', headers: await authHeaders(),
+    });
+  },
   logout: async () => {
     await setToken(null);
   },

@@ -12,6 +12,8 @@ class User(SQLModel, table=True):
     display_name: str = Field(max_length=100)
     coins: int = Field(default=0)
     games_played: int = Field(default=0)
+    quiz_streak: int = Field(default=0)
+    last_quiz_date: Optional[str] = Field(default=None, max_length=10)  # "YYYY-MM-DD"
 
 
 # ── Question (Quiz) ──────────────────────────────────────────────────
