@@ -29,29 +29,45 @@ export default function LobbyScreen({ navigation, route }) {
   useEffect(() => { roomCodeRef.current = roomCode; }, [roomCode]);
   useEffect(() => { displayNameRef.current = displayName; }, [displayName]);
 
-  const setupSocket = (s) => {
+  const setupSocket = (s, onConnected) => {
+    s.on('connect', () => {
+      console.log('[Socket] Connected, id:', s.id);
+      if (onConnected) onConnected();
+    });
+    s.on('connect_error', (err) => {
+      console.error('[Socket] Connection error:', err.message, err);
+      Alert.alert('Connection Error', 'Could not connect to game server: ' + err.message);
+    });
+    s.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected:', reason);
+    });
     s.on('lobby_created', ({ roomCode: code }) => {
+      console.log('[Socket] Lobby created:', code);
       setRoomCode(code);
       roomCodeRef.current = code;
     });
     s.on('lobby_joined', ({ roomCode: code }) => {
+      console.log('[Socket] Lobby joined:', code);
       setRoomCode(code);
       roomCodeRef.current = code;
     });
     s.on('lobby_update', (data) => {
+      console.log('[Socket] Lobby update:', JSON.stringify(data));
       setLobby(data);
     });
     s.on('error_msg', ({ message }) => {
       Alert.alert('Error', message);
     });
     s.on('game_started', ({ years, totalBudget }) => {
-      // Clean up LobbyScreen listeners before navigating
+      console.log('[Socket] Game started:', years, 'years,', totalBudget, 'budget');
       s.off('lobby_created');
       s.off('lobby_joined');
       s.off('lobby_update');
       s.off('error_msg');
       s.off('game_started');
       s.off('player_left');
+      s.off('connect');
+      s.off('connect_error');
       navigation.replace('MultiSetup', { email, displayName: displayNameRef.current, roomCode: roomCodeRef.current, years, totalBudget });
     });
     s.on('player_left', ({ message }) => {
@@ -63,18 +79,36 @@ export default function LobbyScreen({ navigation, route }) {
   const createLobby = () => {
     if (!displayName.trim()) { Alert.alert('Oops!', 'Please set a display name first.'); return; }
     const s = connectSocket();
-    setupSocket(s);
-    s.emit('create_lobby', { displayName: displayName.trim(), email });
     setMode('create');
+    if (s.connected) {
+      // Already connected, emit immediately
+      setupSocket(s, null);
+      console.log('[Socket] Already connected, emitting create_lobby');
+      s.emit('create_lobby', { displayName: displayName.trim(), email });
+    } else {
+      // Wait for connection before emitting
+      setupSocket(s, () => {
+        console.log('[Socket] Now connected, emitting create_lobby');
+        s.emit('create_lobby', { displayName: displayName.trim(), email });
+      });
+    }
   };
 
   const joinLobby = () => {
     if (!displayName.trim()) { Alert.alert('Oops!', 'Please set a display name first.'); return; }
     if (!roomCode.trim() || roomCode.length !== 4) { Alert.alert('Oops!', 'Enter a 4-digit room code.'); return; }
     const s = connectSocket();
-    setupSocket(s);
-    s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email });
     setMode('join');
+    if (s.connected) {
+      setupSocket(s, null);
+      console.log('[Socket] Already connected, emitting join_lobby');
+      s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email });
+    } else {
+      setupSocket(s, () => {
+        console.log('[Socket] Now connected, emitting join_lobby');
+        s.emit('join_lobby', { roomCode: roomCode.trim(), displayName: displayName.trim(), email });
+      });
+    }
   };
 
   const startGame = () => {

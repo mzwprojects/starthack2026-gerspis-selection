@@ -10,7 +10,7 @@ let socket = null;
 export const getSocket = () => {
   if (!socket) {
     socket = io(getSocketUrl(), {
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
       autoConnect: false,
     });
   }
