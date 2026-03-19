@@ -34,7 +34,7 @@ export default function QuizScreen({ navigation, route }) {
     if (selectedAnswer !== null) return;
     setSelectedAnswer(answerIndex);
     try {
-      const data = await api.submitAnswer(questions[currentIndex].id, answerIndex, userEmail);
+      const data = await api.submitAnswer(questions[currentIndex].id, answerIndex);
       setResult(data);
       setTotalCoins(data.totalCoins);
       if (data.correct) {

@@ -5,9 +5,9 @@ const getSocketUrl = () => {
   const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
   if (debuggerHost) {
     const host = debuggerHost.split(':')[0];
-    return `http://${host}:3001`;
+    return `http://${host}:8000`;
   }
-  return 'http://localhost:3001';
+  return 'http://localhost:8000';
 };
 
 let socket = null;

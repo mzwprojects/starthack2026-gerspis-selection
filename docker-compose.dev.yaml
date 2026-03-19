@@ -2,4 +2,4 @@ services:
   api:
     volumes:
       - ./apps/api/app:/app/app
-    command: [ "fastapi", "dev", "--host", "0.0.0.0", "--proxy-headers" ]
+    command: [ "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload", "--proxy-headers" ]

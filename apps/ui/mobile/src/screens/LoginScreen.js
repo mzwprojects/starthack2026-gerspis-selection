@@ -38,8 +38,8 @@ export default function LoginScreen({ navigation }) {
       const data = isLogin
         ? await api.login(email.trim(), password)
         : await api.register(email.trim(), password, displayName.trim());
-      if (data.error) {
-        Alert.alert('Error', data.error);
+      if (data.error || data.detail) {
+        Alert.alert('Error', data.error || data.detail);
       } else {
         await AsyncStorage.setItem('userEmail', email.trim());
         await AsyncStorage.setItem('userDisplayName', data.user.displayName || email.split('@')[0]);

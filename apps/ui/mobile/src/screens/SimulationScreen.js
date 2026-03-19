@@ -54,7 +54,7 @@ export default function SimulationScreen({ navigation, route }) {
       try {
         const assetsData = await api.getAssets();
         setYearEndAssets(assetsData.assets || []);
-        const data = await api.simulate(years, totalBudget, allocation, email);
+        const data = await api.simulate(years, totalBudget, allocation);
         if (data.error) { alert(data.error); navigation.goBack(); return; }
         setSimData(data);
         simDataRef.current = data;
