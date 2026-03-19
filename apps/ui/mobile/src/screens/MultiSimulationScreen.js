@@ -6,6 +6,7 @@ import {
 import Svg, { Polyline, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { colors, spacing, borderRadius, fontSize, shadows } from '../theme';
 import { getSocket } from '../socket';
+import { api } from '../api';
 
 const YEAR_DURATION = 7000;
 const Y_AXIS_W = 45;
@@ -41,8 +42,19 @@ export default function MultiSimulationScreen({ navigation, route }) {
   const [showYearEnd, setShowYearEnd] = useState(false);
   const [yearEndYear, setYearEndYear] = useState(0);
   const yearEndSlide = useRef(new Animated.Value(SCREEN_H)).current;
+  const [wantsRealloc, setWantsRealloc] = useState(false);
+  const [yearEndAllocation, setYearEndAllocation] = useState({});
+  const [yearEndAssets, setYearEndAssets] = useState([]);
 
   useEffect(() => {
+    (async () => {
+      try {
+        const assetsData = await api.getAssets();
+        setYearEndAssets(assetsData.assets || []);
+      } catch (e) {
+        console.error('Failed to load assets', e);
+      }
+    })();
     showYearIntroOverlay(1);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -93,9 +105,21 @@ export default function MultiSimulationScreen({ navigation, route }) {
   const showYearEndPopup = useCallback((y) => {
     setYearEndYear(y);
     setShowYearEnd(true);
+    setWantsRealloc(false);
+    setYearEndAllocation({});
     yearEndSlide.setValue(SCREEN_H);
     Animated.spring(yearEndSlide, { toValue: 0, tension: 50, friction: 10, useNativeDriver: true }).start();
   }, []);
+
+  const adjustYearEnd = (id, delta) => {
+    setYearEndAllocation(prev => {
+      const total = Object.values(prev).reduce((a, b) => a + b, 0);
+      const cur = prev[id] || 0;
+      const nv = Math.max(0, Math.min(100, cur + delta));
+      if (total - cur + nv > 100) return prev;
+      return { ...prev, [id]: nv };
+    });
+  };
 
   const dismissYearEnd = useCallback(() => {
     Animated.timing(yearEndSlide, { toValue: SCREEN_H, duration: 300, useNativeDriver: true, easing: Easing.in(Easing.cubic) }).start(() => {
@@ -263,6 +287,7 @@ export default function MultiSimulationScreen({ navigation, route }) {
   const myChange = myVal - totalBudget;
   const myPct = ((myChange / totalBudget) * 100).toFixed(1);
   const pos = myChange >= 0;
+  const yearEndAllocTotal = Object.values(yearEndAllocation).reduce((a, b) => a + b, 0);
 
   return (
     <View style={styles.container}>
@@ -352,18 +377,67 @@ export default function MultiSimulationScreen({ navigation, route }) {
       <Modal visible={showYearEnd} transparent animationType="none">
         <View style={styles.modalOverlay}>
           <Animated.View style={[styles.yearEndCard, { transform: [{ translateY: yearEndSlide }] }]}>
-            <Text style={{ fontSize: 44, textAlign: 'center', marginBottom: spacing.sm }}>🎉</Text>
-            <Text style={styles.yearEndTitle}>Year {yearEndYear} Complete!</Text>
-            <View style={{ marginTop: spacing.sm }}>
-              {rankings.map((p, i) => (
-                <Text key={p.id} style={{ fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center' }}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'} {p.displayName}: CHF {fmt(p.value)}
-                </Text>
-              ))}
-            </View>
-            <TouchableOpacity style={styles.yearEndContinueBtn} onPress={dismissYearEnd} activeOpacity={0.85}>
-              <Text style={styles.yearEndContinueBtnText}>Continue →</Text>
-            </TouchableOpacity>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.md }}>
+              <Text style={{ fontSize: 44, textAlign: 'center', marginBottom: spacing.sm }}>🎉</Text>
+              <Text style={styles.yearEndTitle}>Year {yearEndYear} Complete!</Text>
+              <View style={{ marginTop: spacing.sm }}>
+                {rankings.map((p, i) => (
+                  <Text key={p.id} style={{ fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center' }}>
+                    {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'} {p.displayName}: CHF {fmt(p.value)}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.yearEndDivider} />
+              <Text style={styles.yearEndInfoTitle}>📥 Annual Investment</Text>
+              <Text style={styles.yearEndInfoText}>
+                An additional CHF 1'000 will be invested for the next year.
+              </Text>
+              <View style={styles.yearEndChoiceRow}>
+                <TouchableOpacity
+                  style={[styles.yearEndChoiceBtn, !wantsRealloc && styles.yearEndChoiceBtnActive]}
+                  onPress={() => setWantsRealloc(false)} activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 20, marginBottom: 4 }}>✅</Text>
+                  <Text style={[styles.yearEndChoiceText, !wantsRealloc && { color: colors.textOnDark }]}>Keep Allocation</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.yearEndChoiceBtn, wantsRealloc && styles.yearEndChoiceBtnActive]}
+                  onPress={() => setWantsRealloc(true)} activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 20, marginBottom: 4 }}>⚙️</Text>
+                  <Text style={[styles.yearEndChoiceText, wantsRealloc && { color: colors.textOnDark }]}>Adjust</Text>
+                </TouchableOpacity>
+              </View>
+              {wantsRealloc && (
+                <View style={styles.yearEndAllocSection}>
+                  <Text style={{ fontSize: fontSize.xs, color: colors.textLight, marginBottom: spacing.sm, textAlign: 'center' }}>
+                    Allocate CHF 1'000 for year {yearEndYear + 1}:
+                  </Text>
+                  <View style={styles.allocBarSmall}>
+                    <View style={[styles.allocFillSmall, { width: `${yearEndAllocTotal}%`, backgroundColor: yearEndAllocTotal === 100 ? colors.success : colors.accent }]} />
+                  </View>
+                  <Text style={{ fontSize: 10, color: yearEndAllocTotal === 100 ? colors.success : colors.textLight, textAlign: 'right', marginBottom: spacing.sm }}>{yearEndAllocTotal}%</Text>
+                  {yearEndAssets.map(asset => (
+                    <View key={asset.id} style={styles.yearEndAssetRow}>
+                      <Text style={{ fontSize: 16, marginRight: 6 }}>{asset.icon}</Text>
+                      <Text style={{ flex: 1, fontSize: fontSize.xs, fontWeight: '600', color: colors.textPrimary }} numberOfLines={1}>{asset.name}</Text>
+                      <TouchableOpacity style={styles.yearEndAllocBtn} onPress={() => adjustYearEnd(asset.id, -5)}>
+                        <Text style={styles.yearEndAllocBtnText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={{ width: 38, textAlign: 'center', fontSize: fontSize.xs, fontWeight: '700', color: yearEndAllocation[asset.id] > 0 ? colors.primary : colors.textLight }}>
+                        {yearEndAllocation[asset.id] || 0}%
+                      </Text>
+                      <TouchableOpacity style={[styles.yearEndAllocBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => adjustYearEnd(asset.id, 5)}>
+                        <Text style={[styles.yearEndAllocBtnText, { color: colors.textOnDark }]}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+              <TouchableOpacity style={styles.yearEndContinueBtn} onPress={dismissYearEnd} activeOpacity={0.85}>
+                <Text style={styles.yearEndContinueBtnText}>Continue →</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </Animated.View>
         </View>
       </Modal>
@@ -474,8 +548,22 @@ const styles = StyleSheet.create({
   quizQ: { fontSize: fontSize.md, fontWeight: '600', color: colors.textPrimary, textAlign: 'center', lineHeight: 22, marginBottom: spacing.md },
   qOpt: { flexDirection: 'row', alignItems: 'center', width: '100%', backgroundColor: colors.background, borderRadius: borderRadius.md, padding: spacing.sm, marginBottom: 6, borderWidth: 1.5, borderColor: colors.border },
   feedbackBox: { width: '100%', backgroundColor: '#F0F9FF', borderRadius: borderRadius.md, padding: spacing.sm, marginTop: spacing.sm, alignItems: 'center' },
-  yearEndCard: { backgroundColor: colors.white, borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.lg, width: '100%', position: 'absolute', bottom: 0, ...shadows.card },
+  yearEndCard: { backgroundColor: colors.white, borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.lg, width: '100%', maxHeight: SCREEN_H * 0.8, position: 'absolute', bottom: 0, ...shadows.card },
   yearEndTitle: { fontSize: fontSize.xxl, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: spacing.xs },
+  yearEndSubtitle: { fontSize: fontSize.md, color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.md },
+  yearEndDivider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
+  yearEndInfoTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.xs },
+  yearEndInfoText: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 20, marginBottom: spacing.md },
+  yearEndChoiceRow: { flexDirection: 'row', gap: 10, marginBottom: spacing.md },
+  yearEndChoiceBtn: { flex: 1, backgroundColor: colors.background, borderRadius: borderRadius.md, paddingVertical: spacing.md, alignItems: 'center', borderWidth: 2, borderColor: colors.border },
+  yearEndChoiceBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  yearEndChoiceText: { fontSize: fontSize.sm, fontWeight: '600', color: colors.textPrimary },
+  yearEndAllocSection: { backgroundColor: colors.background, borderRadius: borderRadius.md, padding: spacing.md, marginBottom: spacing.md },
+  yearEndAssetRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  yearEndAllocBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.border },
+  yearEndAllocBtnText: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, lineHeight: 18 },
+  allocBarSmall: { height: 5, backgroundColor: colors.border, borderRadius: 3, overflow: 'hidden', marginBottom: 2 },
+  allocFillSmall: { height: '100%', borderRadius: 3 },
   yearEndContinueBtn: { backgroundColor: colors.primary, borderRadius: borderRadius.full, paddingVertical: 14, alignItems: 'center', marginTop: spacing.lg, ...shadows.button },
   yearEndContinueBtnText: { fontSize: fontSize.lg, fontWeight: '700', color: colors.textOnDark },
 });
